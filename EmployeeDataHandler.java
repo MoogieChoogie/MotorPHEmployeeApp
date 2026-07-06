@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class EmployeeDataHandler {
-    private static final String FILE_NAME = "employees.csv";
+    private static final String FILE_NAME = "Employees.csv";
 
     public static void createFileIfMissing() {
         File file = new File(FILE_NAME);
@@ -10,7 +10,8 @@ public class EmployeeDataHandler {
         try {
             if (file.createNewFile()) {
                 try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
-                    writer.println("EmployeeID,Name,Department,Position,Salary");
+                    writer.println(
+                            "EmployeeID,Name,Department,Position,RatePerDay,DaysWorked,Deductions,GrossPay,NetPay");
                 }
             }
         } catch (IOException e) {
@@ -35,7 +36,7 @@ public class EmployeeDataHandler {
 
                 String[] data = line.split(",");
 
-                if (data.length == 5) {
+                if (data.length == 9) {
                     employees.add(data);
                 }
             }
@@ -47,7 +48,8 @@ public class EmployeeDataHandler {
         return employees;
     }
 
-    public static void addEmployee(String employeeId, String name, String department, String position, String salary) {
+    public static void addEmployee(String employeeId, String name, String department, String position,
+            String ratePerDay, String daysWorked, String deductions) {
         createFileIfMissing();
 
         try {
@@ -67,11 +69,31 @@ public class EmployeeDataHandler {
             }
 
             try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME, true))) {
-                writer.println(employeeId + "," + name + "," + department + "," + position + "," + salary);
+                writer.println(employeeId + "," + name + "," + department + "," + position + ","
+                        + ratePerDay + "," + daysWorked + "," + deductions + ",0,0");
             }
 
         } catch (IOException e) {
             System.out.println("Error writing employee record.");
         }
+    }
+
+    public static void saveChangesToFile(ArrayList<String[]> employees) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
+            writer.println(
+                    "Employee Number,Name,Department,Position,Rate,Hours/Days Worked,Deductions,GrossPay,NetPay");
+
+            for (String[] employee : employees) {
+                writer.println(employee[0] + "," + employee[1] + "," + employee[2] + "," + employee[3] + ","
+                        + employee[4] + "," + employee[5] + "," + employee[6] + "," + employee[7] + "," + employee[8]);
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error saving employee records.");
+        }
+    }
+
+    public static void saveEmployees(ArrayList<String[]> employees) {
+        saveChangesToFile(employees);
     }
 }

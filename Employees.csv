@@ -1,5 +1,4 @@
-EmployeeID,Name,Department,Position,Salary
-1001,Christian Narte,IT,IT Staff,15000
-1002,Ana Ramos,Finance,Accountant,42000
-1003,Marco Cruz,HR,HR Assistant,30000
-1004,Juan Dela Cruz,Operations,Staff,28000
+Employee Number,Name,Department,Position,Rate,Hours/Days Worked,Deductions,GrossPay,NetPay
+1001,Christian Narte,IT Operations,Senior IT Staff,750,20,1500,15000.00,13500.00
+1002,Ana Ramos,Finance,Accountant,1200,22,2500,26400.00,23900.00
+1003,Marco Cruz,HR,HR Assistant,900,21,1800,18900.00,17100.00
