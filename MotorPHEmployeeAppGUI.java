@@ -1,110 +1,164 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.*;
+import java.util.ArrayList;
 
 public class MotorPHEmployeeAppGUI {
     private JFrame frame;
-    private JTextField employeeNumberField;
-    private JTextField employeeNameField;
-    private JTextField payCoverageField;
+    private JTable employeeTable;
+    private DefaultTableModel tableModel;
+
+    private JTextField employeeIdField;
+    private JTextField nameField;
+    private JTextField departmentField;
+    private JTextField positionField;
+    private JTextField salaryField;
 
     public MotorPHEmployeeAppGUI() {
-        frame = new JFrame("MotorPH Employee App");
+        frame = new JFrame("MotorPH Employee App - Employee Record Management");
 
-        JLabel titleLabel = new JLabel("MotorPH Employee App");
-        JLabel employeeNumberLabel = new JLabel("Employee Number:");
-        JLabel employeeNameLabel = new JLabel("Employee Name:");
-        JLabel payCoverageLabel = new JLabel("Pay Coverage:");
+        JLabel titleLabel = new JLabel("MotorPH Employee Records");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        employeeNumberField = new JTextField();
-        employeeNameField = new JTextField();
-        payCoverageField = new JTextField();
+        String[] columnNames = { "Employee ID", "Name", "Department", "Position", "Salary" };
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        employeeTable = new JTable(tableModel);
 
-        JButton submitButton = new JButton("Submit");
-        JButton clearButton = new JButton("Clear");
+        JScrollPane tableScrollPane = new JScrollPane(employeeTable);
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(5, 2, 10, 10));
+        JLabel employeeIdLabel = new JLabel("Employee ID:");
+        JLabel nameLabel = new JLabel("Name:");
+        JLabel departmentLabel = new JLabel("Department:");
+        JLabel positionLabel = new JLabel("Position:");
+        JLabel salaryLabel = new JLabel("Salary:");
 
-        panel.add(employeeNumberLabel);
-        panel.add(employeeNumberField);
+        employeeIdField = new JTextField();
+        nameField = new JTextField();
+        departmentField = new JTextField();
+        positionField = new JTextField();
+        salaryField = new JTextField();
 
-        panel.add(employeeNameLabel);
-        panel.add(employeeNameField);
+        JButton addButton = new JButton("Add Employee");
+        JButton clearButton = new JButton("Clear Fields");
+        JButton refreshButton = new JButton("Refresh Table");
 
-        panel.add(payCoverageLabel);
-        panel.add(payCoverageField);
+        JPanel formPanel = new JPanel();
+        formPanel.setLayout(new GridLayout(6, 2, 10, 10));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-        panel.add(submitButton);
-        panel.add(clearButton);
+        formPanel.add(employeeIdLabel);
+        formPanel.add(employeeIdField);
+
+        formPanel.add(nameLabel);
+        formPanel.add(nameField);
+
+        formPanel.add(departmentLabel);
+        formPanel.add(departmentField);
+
+        formPanel.add(positionLabel);
+        formPanel.add(positionField);
+
+        formPanel.add(salaryLabel);
+        formPanel.add(salaryField);
+
+        formPanel.add(addButton);
+        formPanel.add(clearButton);
+
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setLayout(new BorderLayout());
+        bottomPanel.add(formPanel, BorderLayout.CENTER);
+        bottomPanel.add(refreshButton, BorderLayout.SOUTH);
 
         frame.setLayout(new BorderLayout());
         frame.add(titleLabel, BorderLayout.NORTH);
-        frame.add(panel, BorderLayout.CENTER);
+        frame.add(tableScrollPane, BorderLayout.CENTER);
+        frame.add(bottomPanel, BorderLayout.SOUTH);
 
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        addButton.addActionListener(e -> addEmployeeRecord());
+        clearButton.addActionListener(e -> clearFields());
+        refreshButton.addActionListener(e -> loadTableData());
 
-        submitButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                submitEmployeeInfo();
-            }
-        });
+        EmployeeDataHandler.createFileIfMissing();
+        loadTableData();
 
-        clearButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                clearFields();
-            }
-        });
-
-        frame.setSize(400, 250);
+        frame.setSize(750, 500);
+        frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
 
-    public void submitEmployeeInfo() {
-        try {
-            String employeeNumberText = employeeNumberField.getText().trim();
-            String employeeName = employeeNameField.getText().trim();
-            String payCoverageText = payCoverageField.getText().trim();
+    public void loadTableData() {
+        tableModel.setRowCount(0);
 
-            if (employeeNumberText.isEmpty()) {
-                throw new IllegalArgumentException("Please enter the employee number.");
+        ArrayList<String[]> employees = EmployeeDataHandler.loadEmployees();
+
+        for (String[] employee : employees) {
+            tableModel.addRow(employee);
+        }
+    }
+
+    public void addEmployeeRecord() {
+        try {
+            String employeeId = employeeIdField.getText().trim();
+            String name = nameField.getText().trim();
+            String department = departmentField.getText().trim();
+            String position = positionField.getText().trim();
+            String salaryText = salaryField.getText().trim();
+
+            if (employeeId.isEmpty()) {
+                throw new IllegalArgumentException("Please enter the employee ID.");
             }
 
-            if (employeeName.isEmpty()) {
+            if (name.isEmpty()) {
                 throw new IllegalArgumentException("Please enter the employee name.");
             }
 
-            if (payCoverageText.isEmpty()) {
-                throw new IllegalArgumentException("Please enter the pay coverage.");
+            if (department.isEmpty()) {
+                throw new IllegalArgumentException("Please enter the department.");
             }
 
-            int employeeNumber = Integer.parseInt(employeeNumberText);
-            double payCoverage = Double.parseDouble(payCoverageText);
+            if (position.isEmpty()) {
+                throw new IllegalArgumentException("Please enter the position.");
+            }
+
+            if (salaryText.isEmpty()) {
+                throw new IllegalArgumentException("Please enter the salary.");
+            }
+
+            int employeeNumber = Integer.parseInt(employeeId);
+            double salary = Double.parseDouble(salaryText);
 
             if (employeeNumber <= 0) {
-                throw new IllegalArgumentException("Employee number must be greater than zero.");
+                throw new IllegalArgumentException("Employee ID must be greater than zero.");
             }
 
-            if (payCoverage <= 0) {
-                throw new IllegalArgumentException("Pay coverage must be greater than zero.");
+            if (salary <= 0) {
+                throw new IllegalArgumentException("Salary must be greater than zero.");
             }
+
+            EmployeeDataHandler.addEmployee(employeeId, name, department, position, salaryText);
+
+            loadTableData();
+            clearFields();
 
             JOptionPane.showMessageDialog(
                     frame,
-                    "Employee information submitted successfully!\n\n" +
-                            "Employee Number: " + employeeNumber + "\n" +
-                            "Employee Name: " + employeeName + "\n" +
-                            "Pay Coverage: " + payCoverage,
-                    "Submission Successful",
+                    "Employee record added successfully.",
+                    "Record Added",
                     JOptionPane.INFORMATION_MESSAGE);
 
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(
                     frame,
-                    "Employee Number and Pay Coverage must be valid numbers.",
+                    "Employee ID and Salary must be valid numbers.",
                     "Invalid Input",
                     JOptionPane.ERROR_MESSAGE);
+
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog(
                     frame,
@@ -115,14 +169,10 @@ public class MotorPHEmployeeAppGUI {
     }
 
     public void clearFields() {
-        employeeNumberField.setText("");
-        employeeNameField.setText("");
-        payCoverageField.setText("");
-
-        JOptionPane.showMessageDialog(
-                frame,
-                "Input fields cleared.",
-                "Clear",
-                JOptionPane.INFORMATION_MESSAGE);
+        employeeIdField.setText("");
+        nameField.setText("");
+        departmentField.setText("");
+        positionField.setText("");
+        salaryField.setText("");
     }
 }
