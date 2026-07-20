@@ -19,6 +19,10 @@ public class UpdateDeleteModule {
 
         for (String[] employee : employees) {
             if (employee[0].equals(employeeId)) {
+                boolean salaryDataChanged = !employee[4].equals(ratePerDay)
+                        || !employee[5].equals(daysWorked)
+                        || !employee[6].equals(deductions);
+
                 employee[1] = name;
                 employee[2] = department;
                 employee[3] = position;
@@ -26,9 +30,11 @@ public class UpdateDeleteModule {
                 employee[5] = daysWorked;
                 employee[6] = deductions;
 
-                // Reset computed values because employee salary details changed.
-                employee[7] = "0";
-                employee[8] = "0";
+                if (salaryDataChanged) {
+                    // Recompute the salary after rate, work, or deduction data changes.
+                    employee[7] = "0";
+                    employee[8] = "0";
+                }
 
                 return true;
             }

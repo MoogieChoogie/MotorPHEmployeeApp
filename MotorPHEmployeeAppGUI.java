@@ -18,7 +18,7 @@ public class MotorPHEmployeeAppGUI {
     private JTextField deductionsField;
 
     public MotorPHEmployeeAppGUI() {
-        frame = new JFrame("MotorPH Employee App - Update and Delete Features");
+        frame = new JFrame("MotorPH Employee App");
 
         JLabel titleLabel = new JLabel("MotorPH Employee Record Management");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
@@ -60,6 +60,7 @@ public class MotorPHEmployeeAppGUI {
         JButton clearButton = new JButton("Clear Fields");
         JButton refreshButton = new JButton("Refresh Table");
         JButton computeSalaryButton = new JButton("Compute Salaries");
+        JButton generateSummaryButton = new JButton("Generate Payroll Summary");
 
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new GridLayout(8, 2, 10, 10));
@@ -90,13 +91,14 @@ public class MotorPHEmployeeAppGUI {
         formPanel.add(clearButton);
 
         JPanel actionPanel = new JPanel();
-        actionPanel.setLayout(new GridLayout(2, 2, 10, 10));
+        actionPanel.setLayout(new GridLayout(3, 2, 10, 10));
         actionPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 15, 20));
 
         actionPanel.add(updateButton);
         actionPanel.add(deleteButton);
         actionPanel.add(refreshButton);
         actionPanel.add(computeSalaryButton);
+        actionPanel.add(generateSummaryButton);
 
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new BorderLayout());
@@ -114,6 +116,7 @@ public class MotorPHEmployeeAppGUI {
         clearButton.addActionListener(e -> clearFields());
         refreshButton.addActionListener(e -> loadTableData());
         computeSalaryButton.addActionListener(e -> computeSalaries());
+        generateSummaryButton.addActionListener(e -> generatePayrollSummary());
 
         employeeTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -194,7 +197,7 @@ public class MotorPHEmployeeAppGUI {
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(
                     frame,
-                    "Employee ID, Rate Per Day, Days Worked, and Deductions must be valid numbers.",
+                    "Employee Number, Rate, Hours/Days Worked, and Deductions must be valid numbers.",
                     "Invalid Input",
                     JOptionPane.ERROR_MESSAGE);
 
@@ -260,7 +263,7 @@ public class MotorPHEmployeeAppGUI {
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(
                     frame,
-                    "Employee ID, Rate Per Day, Days Worked, and Deductions must be valid numbers.",
+                    "Employee Number, Rate, Hours/Days Worked, and Deductions must be valid numbers.",
                     "Invalid Input",
                     JOptionPane.ERROR_MESSAGE);
 
@@ -419,7 +422,7 @@ public class MotorPHEmployeeAppGUI {
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(
                     frame,
-                    "Invalid salary data found. Please check rate per day, days worked, and deductions.",
+                    "Invalid salary data found. Please check rate, hours/days worked, and deductions.",
                     "Salary Error",
                     JOptionPane.ERROR_MESSAGE);
 
@@ -432,11 +435,83 @@ public class MotorPHEmployeeAppGUI {
         }
     }
 
+    public void generatePayrollSummary() {
+        try {
+            ArrayList<String[]> employees = EmployeeDataHandler.loadEmployees();
+            int totalEmployees = employees.size();
+
+            if (totalEmployees == 0) {
+                throw new IllegalArgumentException("No employee records found.");
+            }
+
+            double[] ratePerDay = new double[totalEmployees];
+            int[] daysWorked = new int[totalEmployees];
+            double[] deductions = new double[totalEmployees];
+
+            for (int i = 0; i < totalEmployees; i++) {
+                String[] employee = employees.get(i);
+
+                ratePerDay[i] = Double.parseDouble(employee[4]);
+                daysWorked[i] = Integer.parseInt(employee[5]);
+                deductions[i] = Double.parseDouble(employee[6]);
+
+                if (ratePerDay[i] <= 0) {
+                    throw new IllegalArgumentException(
+                            "Invalid rate found for employee ID: " + employee[0]);
+                }
+
+                if (daysWorked[i] <= 0) {
+                    throw new IllegalArgumentException(
+                            "Invalid hours/days worked found for employee ID: " + employee[0]);
+                }
+
+                if (deductions[i] < 0) {
+                    throw new IllegalArgumentException(
+                            "Invalid deductions found for employee ID: " + employee[0]);
+                }
+            }
+
+            double[] grossPay = SalaryComputationModule.computeGrossPay(ratePerDay, daysWorked);
+            double[] totalDeductions = SalaryComputationModule.computeDeductions(deductions);
+            double[] netPay = SalaryComputationModule.computeNetPay(grossPay, totalDeductions);
+
+            double companyGrossPay = SalaryComputationModule.computeTotal(grossPay);
+            double companyDeductions = SalaryComputationModule.computeTotal(totalDeductions);
+            double averageNetPay = SalaryComputationModule.computeAverage(netPay);
+
+            String summary = "=== MotorPH Payroll Summary ===\n\n"
+                    + "Total Employees: " + totalEmployees + "\n"
+                    + "Total Gross Pay: " + formatAmount(companyGrossPay) + "\n"
+                    + "Total Deductions: " + formatAmount(companyDeductions) + "\n"
+                    + "Average Net Pay: " + formatAmount(averageNetPay);
+
+            JOptionPane.showMessageDialog(
+                    frame,
+                    summary,
+                    "MotorPH Payroll Summary",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(
+                    frame,
+                    "Invalid salary data found. Please check rate, hours/days worked, and deductions.",
+                    "Payroll Summary Error",
+                    JOptionPane.ERROR_MESSAGE);
+
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(
+                    frame,
+                    e.getMessage(),
+                    "Payroll Summary Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     public void validateEmployeeData(String employeeId, String name, String department, String position,
             String ratePerDayText, String daysWorkedText, String deductionsText) {
 
         if (employeeId.isEmpty()) {
-            throw new IllegalArgumentException("Please enter the employee ID.");
+            throw new IllegalArgumentException("Please enter the employee number.");
         }
 
         if (name.isEmpty()) {
@@ -452,11 +527,11 @@ public class MotorPHEmployeeAppGUI {
         }
 
         if (ratePerDayText.isEmpty()) {
-            throw new IllegalArgumentException("Please enter the rate per day.");
+            throw new IllegalArgumentException("Please enter the rate.");
         }
 
         if (daysWorkedText.isEmpty()) {
-            throw new IllegalArgumentException("Please enter the days worked.");
+            throw new IllegalArgumentException("Please enter the hours/days worked.");
         }
 
         if (deductionsText.isEmpty()) {
@@ -469,15 +544,15 @@ public class MotorPHEmployeeAppGUI {
         double deductions = Double.parseDouble(deductionsText);
 
         if (employeeNumber <= 0) {
-            throw new IllegalArgumentException("Employee ID must be greater than zero.");
+            throw new IllegalArgumentException("Employee Number must be greater than zero.");
         }
 
         if (ratePerDay <= 0) {
-            throw new IllegalArgumentException("Rate per day must be greater than zero.");
+            throw new IllegalArgumentException("Rate must be greater than zero.");
         }
 
         if (daysWorked <= 0) {
-            throw new IllegalArgumentException("Days worked must be greater than zero.");
+            throw new IllegalArgumentException("Hours/Days Worked must be greater than zero.");
         }
 
         if (deductions < 0) {

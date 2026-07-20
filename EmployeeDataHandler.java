@@ -11,7 +11,7 @@ public class EmployeeDataHandler {
             if (file.createNewFile()) {
                 try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
                     writer.println(
-                            "EmployeeID,Name,Department,Position,RatePerDay,DaysWorked,Deductions,GrossPay,NetPay");
+                            "Employee Number,Name,Department,Position,Rate,Hours/Days Worked,Deductions,Gross Pay,Net Pay");
                 }
             }
         } catch (IOException e) {
@@ -81,7 +81,7 @@ public class EmployeeDataHandler {
     public static void saveChangesToFile(ArrayList<String[]> employees) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
             writer.println(
-                    "Employee Number,Name,Department,Position,Rate,Hours/Days Worked,Deductions,GrossPay,NetPay");
+                    "Employee Number,Name,Department,Position,Rate,Hours/Days Worked,Deductions,Gross Pay,Net Pay");
 
             for (String[] employee : employees) {
                 writer.println(employee[0] + "," + employee[1] + "," + employee[2] + "," + employee[3] + ","
